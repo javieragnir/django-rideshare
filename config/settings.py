@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third-party apps
+    "rest_framework",
     "phonenumber_field",
     # Internal apps
     "rides",

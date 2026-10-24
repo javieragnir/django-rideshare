@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from model_utils import Choices
 from phonenumber_field.modelfields import PhoneNumberField
 
+from .managers import UserManager
+
 
 # Create your models here.
 class User(AbstractBaseUser, PermissionsMixin):
@@ -37,9 +39,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     is_active = models.BooleanField(default=True)
+    is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
+    objects = UserManager()
 
     class Meta:
         verbose_name = _("user")
