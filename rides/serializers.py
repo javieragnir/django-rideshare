@@ -1,11 +1,14 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from .models import Ride, RideEvent
 
+User = get_user_model()
+
 
 class RideSerializer(serializers.ModelSerializer):
-    rider = serializers.PrimaryKeyRelatedField()
-    driver = serializers.PrimaryKeyRelatedField()
+    rider = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    driver = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
         model = Ride
@@ -22,7 +25,7 @@ class RideSerializer(serializers.ModelSerializer):
 
 
 class RideEventSerializer(serializers.ModelSerializer):
-    ride = serializers.PrimaryKeyRelatedField()
+    ride = serializers.PrimaryKeyRelatedField(queryset=Ride.objects.all())
 
     class Meta:
         model = RideEvent
