@@ -1,15 +1,22 @@
 from rest_framework import viewsets
+from rest_framework.response import Response
 
 from config.permissions import AdminOnlyPermission
 
 from .models import Ride, RideEvent
-from .serializers import RideEventSerializer, RideSerializer
+from .serializers import RideEventSerializer, RideListSerializer, RideSerializer
 
 
 class RideViewSet(viewsets.ModelViewSet):
     permission_classes = [AdminOnlyPermission]
     queryset = Ride.objects.all()
     serializer_class = RideSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        serializer = RideListSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class RideEventViewSet(viewsets.ModelViewSet):

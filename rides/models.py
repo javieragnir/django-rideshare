@@ -57,6 +57,9 @@ class Ride(models.Model):
         verbose_name_plural = _("rides")
         db_table = "rides"
 
+    def __str__(self):
+        return f"D: {self.driver}, R: {self.rider} - {self.pickup_time}"
+
 
 class RideEvent(models.Model):
     id = models.BigAutoField(primary_key=True, db_column="id_ride_event")
@@ -80,3 +83,6 @@ class RideEvent(models.Model):
         verbose_name = _("ride event")
         verbose_name_plural = _("ride events")
         db_table = "ride_events"
+
+    def __str__(self):
+        return f"{self.ride} - {self.created_at}"

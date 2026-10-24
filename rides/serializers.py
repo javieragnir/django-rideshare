@@ -6,6 +6,19 @@ from .models import Ride, RideEvent
 User = get_user_model()
 
 
+class RideEventSerializer(serializers.ModelSerializer):
+    ride = serializers.PrimaryKeyRelatedField(queryset=Ride.objects.all())
+
+    class Meta:
+        model = RideEvent
+        fields = [
+            "id",
+            "ride",
+            "description",
+            "created_at",
+        ]
+
+
 class RideSerializer(serializers.ModelSerializer):
     rider = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     driver = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
@@ -24,14 +37,23 @@ class RideSerializer(serializers.ModelSerializer):
         ]
 
 
-class RideEventSerializer(serializers.ModelSerializer):
-    ride = serializers.PrimaryKeyRelatedField(queryset=Ride.objects.all())
+class RideListSerializer(serializers.ModelSerializer):
+    id_rider = serializers.PrimaryKeyRelatedField(
+        source="rider",
+        queryset=User.objects.all(),
+    )
+    id_driver = serializers.PrimaryKeyRelatedField(
+        source="driver",
+        queryset=User.objects.all(),
+    )
+    events = RideEventSerializer(many=True, read_only=True)
 
     class Meta:
-        model = RideEvent
+        model = Ride
+        read_only_fields = ["events"]
         fields = [
             "id",
-            "ride",
-            "description",
-            "created_at",
+            "id_rider",
+            "id_driver",
+            "events",
         ]
