@@ -46,16 +46,16 @@ class RideListSerializer(serializers.ModelSerializer):
         source="driver",
         queryset=User.objects.all(),
     )
-    events = RideEventSerializer(many=True, read_only=True)
+    todays_ride_events = RideEventSerializer(many=True, read_only=True)
 
     class Meta:
         model = Ride
-        read_only_fields = ["events"]
+        read_only_fields = ["todays_ride_events"]
         fields = [
             "id",
             "id_rider",
             "id_driver",
-            "events",
             "status",
             "pickup_time",
+            "todays_ride_events",
         ]

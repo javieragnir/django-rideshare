@@ -1,4 +1,4 @@
-from django.db.models import ExpressionWrapper, F, FloatField, Value
+from django.db.models import ExpressionWrapper, F, FloatField, Prefetch, Value
 from django.db.models.functions import (
     ASin,
     Cos,
@@ -8,6 +8,7 @@ from django.db.models.functions import (
     Sin,
     Sqrt,
 )
+from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.response import Response
 
@@ -28,6 +29,15 @@ class RideViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
 
         if self.action == "list":
+            earliest_time = timezone.now() - timezone.timedelta(hours=24)
+            queryset = queryset.prefetch_related(
+                Prefetch(
+                    "events",
+                    queryset=RideEvent.objects.filter(created_at__gte=earliest_time),
+                    to_attr="todays_ride_events",
+                )
+            )
+
             latitude = self.request.query_params.get("latitude")
             longitude = self.request.query_params.get("longitude")
 
