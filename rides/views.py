@@ -15,6 +15,11 @@ class RideViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = RideListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = RideListSerializer(queryset, many=True)
         return Response(serializer.data)
 
