@@ -12,6 +12,14 @@ class Ride(models.Model):
 
     id = models.BigAutoField(primary_key=True, db_column="id_ride")
 
+    status = models.CharField(
+        _("status"),
+        choices=STATUS_CHOICES,
+        default=STATUS_CHOICES.en_route,
+        max_length=16,
+        db_column="status",
+    )
+
     rider = models.ForeignKey(
         "users.User",
         verbose_name=_("rider"),
