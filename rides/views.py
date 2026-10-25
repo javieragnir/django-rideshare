@@ -1,3 +1,13 @@
+from django.db.models import ExpressionWrapper, F, FloatField, Value
+from django.db.models.functions import (
+    ASin,
+    Cos,
+    Least,
+    Power,
+    Radians,
+    Sin,
+    Sqrt,
+)
 from rest_framework import viewsets
 from rest_framework.response import Response
 
@@ -14,15 +24,58 @@ class RideViewSet(viewsets.ModelViewSet):
     serializer_class = RideSerializer
     filterset_class = RideFilter
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if self.action == "list":
+            latitude = self.request.query_params.get("latitude")
+            longitude = self.request.query_params.get("longitude")
+
+            if latitude is None or longitude is None:
+                return queryset
+
+            try:
+                latitude = float(latitude)
+                longitude = float(longitude)
+            except ValueError:
+                return queryset.none()
+
+            if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+                return queryset.none()
+
+            lat1 = Radians(F("pickup_latitude"))
+            lat2 = Radians(Value(latitude))
+            lon1 = Radians(F("pickup_latitude"))
+            lon2 = Radians(Value(longitude))
+
+            a = Power(Sin((lat1 - lat2) / 2.0), 2) + Cos(lat1) * Cos(lat2) * Power(
+                Sin((lon1 - lon2) / 2.0), 2
+            )
+
+            distance = ExpressionWrapper(
+                6371.0 * 2.0 * ASin(Sqrt(Least(Value(1.0), a))),
+                output_field=FloatField(),
+            )
+
+            return queryset.annotate(distance=distance)
+
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return RideListSerializer
+
+        return super().get_serializer_class()
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = RideListSerializer(page, many=True)
+            serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = RideListSerializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
 

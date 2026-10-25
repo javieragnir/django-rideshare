@@ -10,11 +10,9 @@ class RideFilter(django_filters.FilterSet):
     )
 
     o = django_filters.filters.OrderingFilter(
-        # tuple-mapping retains order
         fields=(
             ("pickup_time", "pickup_time"),
-            ("first_name", "first_name"),
-            ("last_name", "last_name"),
+            ("distance", "distance"),
         ),
     )
 
