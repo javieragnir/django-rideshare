@@ -56,4 +56,6 @@ class RideListSerializer(serializers.ModelSerializer):
             "id_rider",
             "id_driver",
             "events",
+            "status",
+            "pickup_time",
         ]
