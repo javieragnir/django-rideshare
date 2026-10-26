@@ -40,6 +40,7 @@ This project implements the Rideshare coding assignment for Wingz.
     - When using distance, must additionally set query parameters `longitude=<float>` and `latitude=<float>`
     - There will be an error if asking for distance and both longitude and latitude are not defined
     - The backend will calculate the distance from existing pickup latitude/longitudes from the input latitude/longitudes
+    - There will be errors if using distance without `longitude` and `latitude`, as well as errors as if only one of `longitude` or `latitude` are defined, or if either value is not a float.
 
 ### Ride List Example
 `http://127.0.0.1:8000/api/rides/?limit=10&offset=1&o=-pickup_time,distance&latitude=20.0&longitude=20.0&email=john&gmail.com&status=Pickup`
@@ -47,45 +48,60 @@ This project implements the Rideshare coding assignment for Wingz.
 ## Bonus SQL
 ```
 WITH Pickup_Event AS (
-    SELECT 
+    SELECT
         id_ride,
-        created_at AS pickup_time
+        MIN(created_at) AS pickup_time
     FROM
-        Ride_Event
+        ride_events
     WHERE
         description = 'Status changed to pickup'
+    GROUP BY
+        id_ride
 ),
-Dropoff_event AS (
-    SELECT 
+Dropoff_Event AS (
+    SELECT
         id_ride,
-        created_at AS dropoff_time
+        MIN(created_at) AS dropoff_time
     FROM
-        Ride_Event
+        ride_events
     WHERE
         description = 'Status changed to dropoff'
+    GROUP BY
+        id_ride
 ),
 Ride_Durations AS (
-    SELECT 
-        Ride.id_ride,
-        Ride.id_rider,
-        User.first_name || ' ' || substr(User.last_name, 1, 1) AS driver, 
+    SELECT
+        rides.id_ride,
+        rides.id_rider,
+        rides.id_driver,
+        users.first_name || ' ' ||
+            substr(users.last_name, 1, 1) AS driver,
         Pickup_Event.pickup_time,
-        (strftime('%s', Dropoff_Event.dropoff_time) - strftime('%s', Pickup_Event.pickup_time)) / 3600 AS duration_hours
-    FROM 
-        Ride
-    LEFT JOIN Pickup_Event ON Ride.id_ride = Pickup_Event.id_ride
-    LEFT JOIN Dropoff_Event ON Ride.id_ride = Dropoff_Event.id_ride
-    LEFT JOIN User ON Ride.id_rider = User.id_user
+        (
+            strftime('%s', Dropoff_Event.dropoff_time) -
+            strftime('%s', Pickup_Event.pickup_time)
+        ) / 3600.0 AS duration_hours
+    FROM
+        rides
+    LEFT JOIN Pickup_Event
+        ON rides.id_ride = Pickup_Event.id_ride
+    LEFT JOIN Dropoff_Event
+        ON rides.id_ride = Dropoff_Event.id_ride
+    LEFT JOIN users
+        ON rides.id_driver = users.id_user
 )
 SELECT
     strftime('%Y-%m', pickup_time) AS Month,
     driver AS Driver,
-    COUNT(*) AS 'Count of Trips > 1 hr'
+    COUNT(*) AS "Count of Trips > 1 hr"
 FROM
     Ride_Durations
 WHERE
     duration_hours > 1
 GROUP BY
     strftime('%Y-%m', pickup_time),
-    Driver
+    driver
+ORDER BY
+    Month,
+    Driver;
 ```
