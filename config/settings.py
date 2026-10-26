@@ -25,7 +25,11 @@ SECRET_KEY = "django-insecure-g%kguj_#hu+9y8nad^6yt4(9w*5rn9sfjgd)(lbo0=&ax(o8#l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "testserver",
+]
 
 
 # Application definition
@@ -41,6 +45,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "phonenumber_field",
     "django_filters",
+    "django_extensions",
     # Internal apps
     "rides",
     "users",
