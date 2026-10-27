@@ -1,15 +1,8 @@
-from django.db.models import ExpressionWrapper, F, FloatField, Prefetch, Value
-from django.db.models.functions import (
-    ASin,
-    Cos,
-    Least,
-    Power,
-    Radians,
-    Sin,
-    Sqrt,
-)
+from django.db.models import F, Prefetch, Value
+from django.db.models.functions import ACos, Cos, Radians, Sin
 from django.utils import timezone
 from rest_framework import viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from config.permissions import AdminOnlyPermission
@@ -38,36 +31,40 @@ class RideViewSet(viewsets.ModelViewSet):
                 )
             )
 
+            order_params = self.request.query_params.get("o")
+            order_params = order_params.split(",") if order_params else []
+
+            if "distance" not in order_params:
+                return queryset
+
             latitude = self.request.query_params.get("latitude")
             longitude = self.request.query_params.get("longitude")
 
             if latitude is None or longitude is None:
-                return queryset
+                raise ValidationError(
+                    {
+                        "distance": "Must include latitude and longitude parameters when ordering by distance"
+                    }
+                )
 
             try:
                 latitude = float(latitude)
                 longitude = float(longitude)
             except ValueError:
-                return queryset.none()
+                raise ValidationError(
+                    {"distance": "Latitude and longitude parameters must be floats"}
+                )
 
-            if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
-                return queryset.none()
-
-            lat1 = Radians(F("pickup_latitude"))
-            lat2 = Radians(Value(latitude))
-            lon1 = Radians(F("pickup_latitude"))
-            lon2 = Radians(Value(longitude))
-
-            a = Power(Sin((lat1 - lat2) / 2.0), 2) + Cos(lat1) * Cos(lat2) * Power(
-                Sin((lon1 - lon2) / 2.0), 2
+            # Adapted from https://djangosnippets.org/snippets/10854/
+            return queryset.annotate(
+                distance=ACos(
+                    Cos(Radians(Value(latitude)))
+                    * Cos(Radians(F("pickup_latitude")))
+                    * Cos(Radians(F("pickup_longitude")) - Radians(Value(longitude)))
+                    + Sin(Radians(Value(latitude))) * Sin(Radians(F("pickup_latitude")))
+                )
+                * 3959
             )
-
-            distance = ExpressionWrapper(
-                6371.0 * 2.0 * ASin(Sqrt(Least(Value(1.0), a))),
-                output_field=FloatField(),
-            )
-
-            return queryset.annotate(distance=distance)
 
         return queryset
 

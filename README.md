@@ -43,14 +43,14 @@ This project implements the Rideshare coding assignment for Wingz.
     - There will be errors if using distance without `longitude` and `latitude`, as well as errors as if only one of `longitude` or `latitude` are defined, or if either value is not a float.
 
 ### Ride List Example
-`http://127.0.0.1:8000/api/rides/?limit=10&offset=1&o=-pickup_time,distance&latitude=20.0&longitude=20.0&email=john&gmail.com&status=Pickup`
+`http://127.0.0.1:8000/api/rides/?limit=10&offset=0&o=-pickup_time,distance&latitude=20.0&longitude=20.0&email=john&gmail.com&status=Pickup`
 
 ## Bonus SQL
 ```
 WITH Pickup_Event AS (
     SELECT
         id_ride,
-        MIN(created_at) AS pickup_time
+        created_at AS pickup_time.
     FROM
         ride_events
     WHERE
@@ -61,13 +61,11 @@ WITH Pickup_Event AS (
 Dropoff_Event AS (
     SELECT
         id_ride,
-        MIN(created_at) AS dropoff_time
+        created_at AS dropoff_time
     FROM
         ride_events
     WHERE
         description = 'Status changed to dropoff'
-    GROUP BY
-        id_ride
 ),
 Ride_Durations AS (
     SELECT
