@@ -18,6 +18,7 @@ This project implements the Rideshare coding assignment for Wingz.
 - Users: `127.0.0.1:8000/api/users/`
 - Rides: `127.0.0.1:8000/api/rides/`
 - Ride Events: `127.0.0.1:8000/api/ride-events/`
+- User must have the `admin` role to view users, rides, and ride events. You may change the user role in the django admin.
 
 
 ### Ride List
@@ -50,7 +51,7 @@ This project implements the Rideshare coding assignment for Wingz.
 WITH Pickup_Event AS (
     SELECT
         id_ride,
-        created_at AS pickup_time.
+        created_at AS pickup_time
     FROM
         ride_events
     WHERE
